@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${service_name}
+spec:
+  replicas: ${replicas}
+  selector:
+    matchLabels:
+      app: ${service_name}
+  template:
+    metadata:
+      labels:
+        app: ${service_name}
+    spec:
+      containers:
+        - name: ${service_name}
+          image: ${image}
+          ports:
+            - containerPort: ${port}

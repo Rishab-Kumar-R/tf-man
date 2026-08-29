@@ -1,0 +1,6 @@
+FROM ${image}
+WORKDIR /app
+COPY . .
+RUN npm install
+EXPOSE ${port}
+CMD ["npm", "start"]
