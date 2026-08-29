@@ -1,0 +1,9 @@
+#!/bin/bash
+dnf update -y
+dnf install -y nginx
+cat <<HTML > /usr/share/nginx/html/index.html
+<h1>deployed by tf</h1>
+<p>Instance: ${instance_name}</p>
+HTML
+systemctl enable nginx
+systemctl start nginx
