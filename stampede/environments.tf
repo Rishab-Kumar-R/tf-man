@@ -1,10 +1,10 @@
 locals {
   environments = {
     dev = {
-      node_desired_size   = 1
-      node_min_size       = 1
-      node_max_size       = 2
-      node_instance_types = ["t3.small"]
+      node_desired_size   = 2
+      node_min_size       = 2
+      node_max_size       = 3
+      node_instance_types = ["c7i-flex.large"]
       single_nat_gateway  = true
 
       rds_instance_class = "db.t3.micro"
@@ -25,7 +25,7 @@ locals {
       node_desired_size   = 2
       node_min_size       = 1
       node_max_size       = 3
-      node_instance_types = ["t3.small"]
+      node_instance_types = ["c7i-flex.xlarge"]
       single_nat_gateway  = true
 
       rds_instance_class = "db.t3.small"
@@ -46,7 +46,7 @@ locals {
       node_desired_size   = 3
       node_min_size       = 2
       node_max_size       = 6
-      node_instance_types = ["t3.medium"]
+      node_instance_types = ["c7i-flex.2xlarge"]
       single_nat_gateway  = false
 
       rds_instance_class = "db.t3.medium"

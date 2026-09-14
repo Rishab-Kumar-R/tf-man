@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	sqstypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/sync/errgroup"
 )
@@ -305,6 +306,31 @@ func (s *server) publishNextOutboxEvent(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+func (s *server) handleGetOrder(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "invalid order id", http.StatusBadRequest)
+		return
+	}
+
+	order, err := s.queries.GetOrder(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "order not found", http.StatusNotFound)
+			return
+		}
+		s.logger.Error("get order failed", "error", err, "order_id", id)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(createOrderResponse{
+		OrderID: order.ID.String(),
+		Status:  order.Status,
+	})
+}
+
 func (s *server) handleHealthz(w http.ResponseWriter, r *http.Request) {
 	if err := s.pool.Ping(r.Context()); err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -412,6 +438,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /orders", s.handleCreateOrder)
+	mux.HandleFunc("GET /orders/{id}", s.handleGetOrder)
 	mux.HandleFunc("GET /healthz", s.handleHealthz)
 
 	httpServer := &http.Server{

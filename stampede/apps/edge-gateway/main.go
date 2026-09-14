@@ -197,8 +197,11 @@ func main() {
 		TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12},
 	})
 
-	orderProxy, err := newReverseProxy(os.Getenv("ORDER_SERVICE_URL"), func(_ string) string {
-		return "/orders"
+	orderProxy, err := newReverseProxy(os.Getenv("ORDER_SERVICE_URL"), func(p string) string {
+		if p == "/checkout" {
+			return "/orders"
+		}
+		return p
 	}, logger)
 	if err != nil {
 		logger.Error("configure order-service proxy failed", "error", err)
@@ -218,6 +221,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /ws", h.handleWS)
 	mux.Handle("POST /checkout", orderProxy)
+	mux.Handle("GET /orders/{id}", orderProxy)
 	mux.Handle("GET /catalog/search", catalogProxy)
 	mux.Handle("GET /catalog/{id}", catalogProxy)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {

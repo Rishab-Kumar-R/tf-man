@@ -29,10 +29,10 @@ spec:
       requirements:
         - key: karpenter.k8s.aws/instance-family
           operator: In
-          values: [ "t3" ]
+          values: [ "c7i-flex" ]
         - key: karpenter.k8s.aws/instance-size
           operator: In
-          values: [ "small" ]
+          values: [ "large" ]
         - key: kubernetes.io/arch
           operator: In
           values: [ "amd64" ]
