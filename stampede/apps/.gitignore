@@ -1,0 +1,8 @@
+# compiled binaries dropped by `go build ./...` with no -o flag
+edge-gateway/edge-gateway
+fraud-detector/fraud-detector
+inventory-service/inventory-service
+notification-worker/notification-worker
+order-service/order-service
+payment-worker/payment-worker
+catalog-service/catalog-service

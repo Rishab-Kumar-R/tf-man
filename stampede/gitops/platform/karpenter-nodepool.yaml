@@ -1,0 +1,49 @@
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: stampede-default
+spec:
+  amiSelectorTerms:
+    - alias: al2023@v20260903
+  subnetSelectorTerms:
+    - tags:
+        kubernetes.io/role/internal-elb: "1"
+  securityGroupSelectorTerms:
+    - tags:
+        aws:eks:cluster-name: stampede-cluster
+  instanceProfile: stampede-karpenter-node-profile
+  kubelet:
+    maxPods: 40
+---
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: stampede-default
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: stampede-default
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: [ "t3" ]
+        - key: karpenter.k8s.aws/instance-size
+          operator: In
+          values: [ "small" ]
+        - key: kubernetes.io/arch
+          operator: In
+          values: [ "amd64" ]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: [ "on-demand" ]
+      expireAfter: 720h
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 1m
+  limits:
+    cpu: "20"
+    memory: 40Gi
+    nodes: 10

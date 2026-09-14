@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stampede-root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Rishab-Kumar-R/tf-man.git
+    targetRevision: main
+    path: stampede/gitops/platform
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: stampede
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  ignoreDifferences:
+    - group: argoproj.io
+      kind: Application
+      jsonPointers:
+        - /spec/source/kustomize/images
+        - /spec/source/kustomize/patches

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-worker
+  namespace: stampede
+  labels:
+    app: payment-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-worker
+  template:
+    metadata:
+      labels:
+        app: payment-worker
+    spec:
+      serviceAccountName: payment-worker
+      containers:
+        - name: payment-worker
+          image: registry.invalid/stampede/payment-worker:unset
+          env:
+            - name: SQS_QUEUE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: PAYMENT_WORKER_QUEUE_URL
+            - name: SNS_TOPIC_ARN
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: EVENTS_TOPIC_ARN
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: REDIS_ADDR
+            - name: CONCURRENCY
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: CONCURRENCY
+            - name: SIMULATED_FAILURE_RATE
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: SIMULATED_FAILURE_RATE
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15

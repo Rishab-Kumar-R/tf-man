@@ -44,3 +44,8 @@ terraform.rc
 # planout
 
 *.zip
+
+# Backend config carries the account-specific state bucket name - keep the
+# real one local-only, only the .example template is committed.
+backend.hcl
+!backend.hcl.example

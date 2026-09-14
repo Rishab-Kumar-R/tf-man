@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-detector
+  namespace: stampede
+  labels:
+    app: fraud-detector
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fraud-detector
+  template:
+    metadata:
+      labels:
+        app: fraud-detector
+    spec:
+      serviceAccountName: fraud-detector
+      containers:
+        - name: fraud-detector
+          image: registry.invalid/stampede/fraud-detector:unset
+          env:
+            - name: SQS_QUEUE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: FRAUD_DETECTOR_QUEUE_URL
+            - name: SNS_TOPIC_ARN
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: EVENTS_TOPIC_ARN
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: REDIS_ADDR
+            - name: FRAUD_THRESHOLD
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: FRAUD_THRESHOLD
+            - name: FRAUD_WINDOW_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: FRAUD_WINDOW_SECONDS
+            - name: CONCURRENCY
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: CONCURRENCY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15

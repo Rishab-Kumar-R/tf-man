@@ -1,0 +1,1 @@
+bucket = "stampede-tfstate-<YOUR_AWS_ACCOUNT_ID>"

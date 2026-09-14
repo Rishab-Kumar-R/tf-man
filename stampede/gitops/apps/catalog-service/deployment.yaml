@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  namespace: stampede
+  labels:
+    app: catalog-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+    spec:
+      serviceAccountName: catalog-service
+      containers:
+        - name: catalog-service
+          image: registry.invalid/stampede/catalog-service:unset
+          env:
+            - name: DB_SECRET_ARN
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: CATALOG_DB_SECRET_ARN
+            - name: OPENSEARCH_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: stampede-config
+                  key: OPENSEARCH_ENDPOINT
+          resources:
+            requests:
+              cpu: 200m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  namespace: stampede
+spec:
+  selector:
+    app: catalog-service
+  ports:
+    - port: 8080
+      targetPort: 8080

@@ -1,0 +1,12 @@
+go 1.26.5
+
+use (
+	./catalog-service
+	./edge-gateway
+	./fraud-detector
+	./internal
+	./inventory-service
+	./notification-worker
+	./order-service
+	./payment-worker
+)
